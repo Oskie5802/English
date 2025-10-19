@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fiszki do nauki słówek</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .card {
+            position: relative;
+            width: 400px;
+            height: 250px;
+            perspective: 1000px;
+            margin-bottom: 20px;
+        }
+        .inner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .front, .back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .front {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .back {
+            background-color: #e0f7fa;
+            color: #000000;
+            transform: rotateY(180deg);
+        }
+        .flipped .inner {
+            transform: rotateY(180deg);
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="card" class="card">
+        <div class="inner">
+            <div class="front"></div>
+            <div class="back"></div>
+        </div>
+    </div>
+    <button onclick="flipCard()">Odwróć</button>
+    <button onclick="nextCard()">Następna</button>
+
+    <script>
+        const flashcards = [
+            { english: "assignment (n)", phonetic: "/əˈsaɪnmənt/", polish: "zadanie domowe" },
+            { english: "cheat (v)", phonetic: "/tʃi:t/", polish: "oszukiwać" },
+            { english: "continuous assessment", phonetic: "/kənˈtɪnjuəs əˈsesmənt/", polish: "bieżąca ocena" },
+            { english: "course (n)", phonetic: "/kɔ:s/", polish: "kurs, zajęcia" },
+            { english: "coursework (n)", phonetic: "/ˈkɔ:swɜ:k/", polish: "praca kursowa" },
+            { english: "degree (n)", phonetic: "/dɪˈgri:/", polish: "stopień naukowy" },
+            { english: "fail (v)", phonetic: "/feɪl/", polish: "nie zdać, oblać" },
+            { english: "grade (n)", phonetic: "/greɪd/", polish: "ocena" },
+            { english: "graduate (v)", phonetic: "/ˈgrædʒu.eɪt/", polish: "ukończyć studia" },
+            { english: "lecture (n)", phonetic: "/ˈlektʃə(r)/", polish: "wykład" },
+            { english: "mark (n)", phonetic: "/mɑ:k/", polish: "ocena" },
+            { english: "master's (n)", phonetic: "/ˈmɑ:stəz/", polish: "magister" },
+            { english: "notes (pl)", phonetic: "/nəʊts/", polish: "notatki" },
+            { english: "pass (v)", phonetic: "/pɑ:s/", polish: "zdać" },
+            { english: "pupil (n)", phonetic: "/ˈpju:pl/", polish: "uczeń" },
+            { english: "term (n)", phonetic: "/tɜ:m/", polish: "semestr" },
+            { english: "test (n)", phonetic: "/test/", polish: "test" },
+            { english: "tutor (n)", phonetic: "/ˈtju:tə(r)/", polish: "nauczyciel, adiunkt" },
+            { english: "tutorial (n)", phonetic: "/tju:ˈtɔ:riəl/", polish: "ćwiczenia, seminarium" },
+            { english: "undergraduate (n)", phonetic: "/ˌʌndəˈgrædʒuət/", polish: "student na studiach licencjackich" },
+            { english: "become independent", phonetic: "/bɪˈkʌm ˌɪndɪˈpendənt/", polish: "usamodzielnić się" },
+            { english: "extracurricular activities (n phr)", phonetic: "/ˌekstrəkəˈrɪkjələ(r) ækˈtɪvətiz/", polish: "zajęcia pozaprogramowe" },
+            { english: "hall of residence (n)", phonetic: "/hɔ:l əv ˈrezɪdəns/", polish: "akademik" },
+            { english: "make new friends", phonetic: "/meɪk nju: frendz/", polish: "zawrzeć nowe przyjaźnie" },
+            { english: "student facilities", phonetic: "/ˈstju:dənt fəˈsɪlətiz/", polish: "udogodnienia dla studentów" },
+            { english: "student loan (n phr)", phonetic: "/ˈstju:dənt ləʊn/", polish: "kredyt studencki" },
+            { english: "study abroad (v phr)", phonetic: "/ˈstʌdi əˈbrɔ:d/", polish: "studiować za granicą" },
+            { english: "assist (v)", phonetic: "/əˈsɪst/", polish: "pomagać" },
+            { english: "break down barriers", phonetic: "/breɪk daʊn ˈbæriəz/", polish: "przełamywać bariery" },
+            { english: "community project (n)", phonetic: "/kəˈmju:nəti ˈprɒdʒekt/", polish: "projekt społeczny" },
+            { english: "disabled (adj)", phonetic: "/dɪsˈeɪbld/", polish: "niepełnosprawny" },
+            { english: "disadvantaged (adj)", phonetic: "/ˌdɪsədˈvɑ:ntɪdʒd/", polish: "pokrzywdzony przez los" },
+            { english: "donor (n)", phonetic: "/ˈdəʊnə(r)/", polish: "mentor, opiekun" },
+            { english: "non-profit organisation", phonetic: "/nɒn ˈprɒfɪt ˌɔ:gənaɪˈzeɪʃn/", polish: "organizacja non-profit" },
+            { english: "preserve (v)", phonetic: "/prɪˈzɜ:v/", polish: "zachowywać" },
+            { english: "refugee (n)", phonetic: "/ˌrefjuˈdʒi:/", polish: "uchodźca" },
+            { english: "shelter (n)", phonetic: "/ˈʃeltə(r)/", polish: "schronisko" },
+            { english: "underprivileged (adj)", phonetic: "/ˌʌndəˈprɪvɪlɪdʒd/", polish: "upośledzony społecznie" },
+            { english: "volunteer (v)", phonetic: "/ˌvɒlənˈtɪə(r)/", polish: "podjąć się dobrowolnie" },
+            { english: "voluntary work (n)", phonetic: "/ˈvɒləntri wɜ:k/", polish: "wolontariat" },
+            { english: "make a cake (v phr)", phonetic: "/meɪk ə keɪk/", polish: "robić ciasto" },
+            { english: "make a decision", phonetic: "/meɪk ə dɪˈsɪʒn/", polish: "podjąć decyzję" },
+            { english: "make a noise (v phr)", phonetic: "/meɪk ə nɔɪz/", polish: "hałasować" },
+            { english: "make friends (v phr)", phonetic: "/meɪk frendz/", polish: "zawierać przyjaźnie" },
+            { english: "make the dinner (v phr)", phonetic: "/meɪk ðə ˈdɪnə(r)/", polish: "robić obiad" },
+            { english: "do a course (v phr)", phonetic: "/du: ə kɔ:s/", polish: "robić kurs" },
+            { english: "do an assignment", phonetic: "/du: ən əˈsaɪnmənt/", polish: "robić zadanie domowe" },
+            { english: "do an exam (v phr)", phonetic: "/du: an ig'zæm/", polish: "zdać egzamin" },
+            { english: "do chores (v phr)", phonetic: "/du: tfɔ:z/", polish: "wykonywać obowiązki domowe" },
+            { english: "do homework (v phr)", phonetic: "/du: 'həum w3:k/", polish: "robić pracę domową" },
+            { english: "do the shopping (v phr)", phonetic: "/du: ðə 'ʃɒpɪŋ/", polish: "robić zakupy" },
+            { english: "do the washing (v phr)", phonetic: "/du: ðə 'wɒʃɪŋ/", polish: "robić pranie" },
+            { english: "do well (v phr)", phonetic: "/du: wel/", polish: "dobrze sobie radzić" },
+            { english: "academic (adj)", phonetic: "/ˌækəˈdemɪk/", polish: "naukowy, akademicki" },
+            { english: "ages (n pl)", phonetic: "/eɪdʒz/", polish: "od wieków" },
+            { english: "already (adv)", phonetic: "/ɔ:lˈredi/", polish: "już" },
+            { english: "anyone", phonetic: "/ˈeniwʌn/", polish: "ktokolwiek" },
+            { english: "anyway (adv)", phonetic: "/ˈeniweɪ/", polish: "w każdym razie" },
+            { english: "arrange (v)", phonetic: "/əˈreɪndʒ/", polish: "umawiać się" },
+            { english: "avoid (v)", phonetic: "/əˈvɔɪd/", polish: "unikać" },
+            { english: "brave (adj)", phonetic: "/breɪv/", polish: "dzielny, odważny" },
+            { english: "break (n)", phonetic: "/breɪk/", polish: "przerwa" },
+            { english: "by the way (prep phr)", phonetic: "/baɪ ðə weɪ/", polish: "przy okazji" },
+            { english: "can't stand (v phr)", phonetic: "/kɑ:nt stænd/", polish: "nie znosić" },
+            { english: "choice (n)", phonetic: "/tʃɔɪs/", polish: "wybór" },
+            { english: "come up (v phr)", phonetic: "/kʌm ʌp/", polish: "pojawiać się" },
+            { english: "complain (v)", phonetic: "/kəmˈpleɪn/", polish: "skarżyć się" },
+            { english: "don't mind (v phr)", phonetic: "/dəʊnt maɪnd/", polish: "nie mieć nic przeciwko" },
+            { english: "duration (n)", phonetic: "/djʊˈreɪʃn/", polish: "czas trwania" },
+            { english: "encourage (v)", phonetic: "/ɪnˈkʌrɪdʒ/", polish: "zachęcać" },
+            { english: "even (adv)", phonetic: "/ˈi:vn/", polish: "nawet" },
+            { english: "expect (v)", phonetic: "/ɪkˈspekt/", polish: "oczekiwać" },
+            { english: "experience (n)", phonetic: "/ɪkˈspɪəriəns/", polish: "doświadczenie" },
+            { english: "find out about (v phr)", phonetic: "/faɪnd aʊt/", polish: "dowiedzieć się" },
+            { english: "hand in (v phr)", phonetic: "/hænd ɪn/", polish: "oddawać" },
+            { english: "helpline (n)", phonetic: "/ˈhelplaɪn/", polish: "infolinia" },
+            { english: "improve (v)", phonetic: "/ɪmˈpru:v/", polish: "poprawiać" },
+            { english: "instead (adv)", phonetic: "/ɪnˈsted/", polish: "zamiast" },
+            { english: "just (adv)", phonetic: "/dʒʌst/", polish: "właśnie" },
+            { english: "look forward to (v phr)", phonetic: "/lʊk ˈfɔ:wəd tu:/", polish: "z niecierpliwością oczekiwać" },
+            { english: "manage (v)", phonetic: "/ˈmænɪdʒ/", polish: "udać się, móc, dać radę" },
+            { english: "never (adv)", phonetic: "/ˈnevə/", polish: "nigdy" },
+            { english: "personal details (n phr)", phonetic: "/ˈpɜ:sənl ˈdi:teɪlz/", polish: "dane osobowe" },
+            { english: "practical (adj)", phonetic: "/ˈpræktɪkl/", polish: "praktyczny" },
+            { english: "realise (v)", phonetic: "/ˈri:əlaɪz/", polish: "uświadomić sobie" },
+            { english: "relatively (adv)", phonetic: "/ˈrelətɪvli/", polish: "stosunkowo" },
+            { english: "research (n)", phonetic: "/rɪˈsɜ:tʃ/", polish: "badanie" },
+            { english: "result (n)", phonetic: "/rɪˈzʌlt/", polish: "wynik" },
+            { english: "risk (n)", phonetic: "/rɪsk/", polish: "ryzyko" },
+            { english: "since (adv)", phonetic: "/sɪns/", polish: "odkąd" },
+            { english: "take your mind off (v phr)", phonetic: "/teɪk jɔ: maɪnd ɒf/", polish: "oderwać uwagę od" },
+            { english: "theoretical (adj)", phonetic: "/ˌθɪəˈretɪkl/", polish: "teoretyczny" },
+            { english: "topic (n)", phonetic: "/ˈtɒpɪk/", polish: "temat" },
+            { english: "unit (n)", phonetic: "/ˈju:nɪt/", polish: "jednostka" },
+            { english: "unspecified (adj)", phonetic: "/ˌʌnˈspesɪfaɪd/", polish: "nieokreślony" },
+            { english: "valid (adj)", phonetic: "/ˈvælɪd/", polish: "ważny, obowiązujący" },
+            { english: "wallet (n)", phonetic: "/ˈwɒlɪt/", polish: "portfel" },
+            { english: "conjunction", phonetic: "", polish: "spójnik" },
+            { english: "determiner", phonetic: "", polish: "określnik" },
+            { english: "a, an, the, that itp.", phonetic: "", polish: "n.p." },
+            { english: "preposition", phonetic: "", polish: "przyimek" },
+            { english: "pronoun", phonetic: "", polish: "zaimek" },
+            { english: "verb", phonetic: "", polish: "czasownik" }
+        ];
+
+        let currentIndex = 0;
+
+        function showCard() {
+            const front = document.querySelector('.front');
+            const back = document.querySelector('.back');
+            const card = flashcards[currentIndex];
+            front.textContent = card.english;
+            back.textContent = `${card.phonetic}\n${card.polish}`;
+        }
+
+        function flipCard() {
+            document.getElementById('card').classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            currentIndex = (currentIndex + 1) % flashcards.length;
+            document.getElementById('card').classList.remove('flipped');
+            showCard();
+        }
+
+        showCard();
+    </script>
+</body>
+</html>
