@@ -96,7 +96,7 @@
     </div>
 
     <script>
-        const flashcards = [
+        let flashcards = [
             { polish: "zadanie domowe", english: "assignment (n)" },
             { polish: "oszukiwać", english: "cheat (v)" },
             { polish: "bieżąca ocena", english: "continuous assessment" },
@@ -196,11 +196,21 @@
             { polish: "portfel", english: "wallet (n)" },
             { polish: "spójnik", english: "conjunction" },
             { polish: "określnik", english: "determiner" },
-            { polish: "n.p.", english: "a, an, the, that itp." },
             { polish: "przyimek", english: "preposition" },
             { polish: "zaimek", english: "pronoun" },
             { polish: "czasownik", english: "verb" }
         ];
+
+        // Funkcja do tasowania tablicy (Fisher-Yates shuffle)
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Przetasuj fiszki na starcie
+        shuffle(flashcards);
 
         let currentIndex = 0;
 
@@ -217,9 +227,14 @@
         }
 
         function nextCard() {
-            currentIndex = (currentIndex + 1) % flashcards.length;
-            document.getElementById('card').classList.remove('flipped');
-            showCard();
+            const cardElement = document.getElementById('card');
+            cardElement.classList.remove('flipped');
+
+            // Poczekaj na zakończenie animacji odwrócenia zanim zmienisz zawartość
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % flashcards.length;
+                showCard();
+            }, 800); // Czas równy transition: 0.8s (800ms)
         }
 
         showCard();
