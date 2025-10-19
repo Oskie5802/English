@@ -3,32 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fiszki do nauki słówek</title>
+    <title>Fiszki: Polski na Angielski</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            color: #333;
         }
         .card {
             position: relative;
-            width: 400px;
-            height: 250px;
-            perspective: 1000px;
-            margin-bottom: 20px;
+            width: 450px;
+            height: 280px;
+            perspective: 1200px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
         .inner {
             position: absolute;
             width: 100%;
             height: 100%;
-            transition: transform 0.6s;
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             transform-style: preserve-3d;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         .front, .back {
             position: absolute;
@@ -38,28 +41,45 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            padding: 20px;
+            font-size: 28px;
+            padding: 25px;
             box-sizing: border-box;
             text-align: center;
+            border-radius: 15px;
         }
         .front {
-            background-color: #ffffff;
-            color: #000000;
+            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            color: #2c3e50;
         }
         .back {
-            background-color: #e0f7fa;
-            color: #000000;
+            background: linear-gradient(135deg, #a8e063, #56ab2f);
+            color: #ffffff;
             transform: rotateY(180deg);
         }
         .flipped .inner {
             transform: rotateY(180deg);
         }
         button {
-            margin: 10px;
-            padding: 10px 20px;
+            margin: 0 10px;
+            padding: 12px 25px;
             font-size: 18px;
             cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
         }
     </style>
 </head>
@@ -70,114 +90,116 @@
             <div class="back"></div>
         </div>
     </div>
-    <button onclick="flipCard()">Odwróć</button>
-    <button onclick="nextCard()">Następna</button>
+    <div class="controls">
+        <button onclick="flipCard()">Odwróć</button>
+        <button onclick="nextCard()">Następna</button>
+    </div>
 
     <script>
         const flashcards = [
-            { english: "assignment (n)", phonetic: "/əˈsaɪnmənt/", polish: "zadanie domowe" },
-            { english: "cheat (v)", phonetic: "/tʃi:t/", polish: "oszukiwać" },
-            { english: "continuous assessment", phonetic: "/kənˈtɪnjuəs əˈsesmənt/", polish: "bieżąca ocena" },
-            { english: "course (n)", phonetic: "/kɔ:s/", polish: "kurs, zajęcia" },
-            { english: "coursework (n)", phonetic: "/ˈkɔ:swɜ:k/", polish: "praca kursowa" },
-            { english: "degree (n)", phonetic: "/dɪˈgri:/", polish: "stopień naukowy" },
-            { english: "fail (v)", phonetic: "/feɪl/", polish: "nie zdać, oblać" },
-            { english: "grade (n)", phonetic: "/greɪd/", polish: "ocena" },
-            { english: "graduate (v)", phonetic: "/ˈgrædʒu.eɪt/", polish: "ukończyć studia" },
-            { english: "lecture (n)", phonetic: "/ˈlektʃə(r)/", polish: "wykład" },
-            { english: "mark (n)", phonetic: "/mɑ:k/", polish: "ocena" },
-            { english: "master's (n)", phonetic: "/ˈmɑ:stəz/", polish: "magister" },
-            { english: "notes (pl)", phonetic: "/nəʊts/", polish: "notatki" },
-            { english: "pass (v)", phonetic: "/pɑ:s/", polish: "zdać" },
-            { english: "pupil (n)", phonetic: "/ˈpju:pl/", polish: "uczeń" },
-            { english: "term (n)", phonetic: "/tɜ:m/", polish: "semestr" },
-            { english: "test (n)", phonetic: "/test/", polish: "test" },
-            { english: "tutor (n)", phonetic: "/ˈtju:tə(r)/", polish: "nauczyciel, adiunkt" },
-            { english: "tutorial (n)", phonetic: "/tju:ˈtɔ:riəl/", polish: "ćwiczenia, seminarium" },
-            { english: "undergraduate (n)", phonetic: "/ˌʌndəˈgrædʒuət/", polish: "student na studiach licencjackich" },
-            { english: "become independent", phonetic: "/bɪˈkʌm ˌɪndɪˈpendənt/", polish: "usamodzielnić się" },
-            { english: "extracurricular activities (n phr)", phonetic: "/ˌekstrəkəˈrɪkjələ(r) ækˈtɪvətiz/", polish: "zajęcia pozaprogramowe" },
-            { english: "hall of residence (n)", phonetic: "/hɔ:l əv ˈrezɪdəns/", polish: "akademik" },
-            { english: "make new friends", phonetic: "/meɪk nju: frendz/", polish: "zawrzeć nowe przyjaźnie" },
-            { english: "student facilities", phonetic: "/ˈstju:dənt fəˈsɪlətiz/", polish: "udogodnienia dla studentów" },
-            { english: "student loan (n phr)", phonetic: "/ˈstju:dənt ləʊn/", polish: "kredyt studencki" },
-            { english: "study abroad (v phr)", phonetic: "/ˈstʌdi əˈbrɔ:d/", polish: "studiować za granicą" },
-            { english: "assist (v)", phonetic: "/əˈsɪst/", polish: "pomagać" },
-            { english: "break down barriers", phonetic: "/breɪk daʊn ˈbæriəz/", polish: "przełamywać bariery" },
-            { english: "community project (n)", phonetic: "/kəˈmju:nəti ˈprɒdʒekt/", polish: "projekt społeczny" },
-            { english: "disabled (adj)", phonetic: "/dɪsˈeɪbld/", polish: "niepełnosprawny" },
-            { english: "disadvantaged (adj)", phonetic: "/ˌdɪsədˈvɑ:ntɪdʒd/", polish: "pokrzywdzony przez los" },
-            { english: "donor (n)", phonetic: "/ˈdəʊnə(r)/", polish: "mentor, opiekun" },
-            { english: "non-profit organisation", phonetic: "/nɒn ˈprɒfɪt ˌɔ:gənaɪˈzeɪʃn/", polish: "organizacja non-profit" },
-            { english: "preserve (v)", phonetic: "/prɪˈzɜ:v/", polish: "zachowywać" },
-            { english: "refugee (n)", phonetic: "/ˌrefjuˈdʒi:/", polish: "uchodźca" },
-            { english: "shelter (n)", phonetic: "/ˈʃeltə(r)/", polish: "schronisko" },
-            { english: "underprivileged (adj)", phonetic: "/ˌʌndəˈprɪvɪlɪdʒd/", polish: "upośledzony społecznie" },
-            { english: "volunteer (v)", phonetic: "/ˌvɒlənˈtɪə(r)/", polish: "podjąć się dobrowolnie" },
-            { english: "voluntary work (n)", phonetic: "/ˈvɒləntri wɜ:k/", polish: "wolontariat" },
-            { english: "make a cake (v phr)", phonetic: "/meɪk ə keɪk/", polish: "robić ciasto" },
-            { english: "make a decision", phonetic: "/meɪk ə dɪˈsɪʒn/", polish: "podjąć decyzję" },
-            { english: "make a noise (v phr)", phonetic: "/meɪk ə nɔɪz/", polish: "hałasować" },
-            { english: "make friends (v phr)", phonetic: "/meɪk frendz/", polish: "zawierać przyjaźnie" },
-            { english: "make the dinner (v phr)", phonetic: "/meɪk ðə ˈdɪnə(r)/", polish: "robić obiad" },
-            { english: "do a course (v phr)", phonetic: "/du: ə kɔ:s/", polish: "robić kurs" },
-            { english: "do an assignment", phonetic: "/du: ən əˈsaɪnmənt/", polish: "robić zadanie domowe" },
-            { english: "do an exam (v phr)", phonetic: "/du: an ig'zæm/", polish: "zdać egzamin" },
-            { english: "do chores (v phr)", phonetic: "/du: tfɔ:z/", polish: "wykonywać obowiązki domowe" },
-            { english: "do homework (v phr)", phonetic: "/du: 'həum w3:k/", polish: "robić pracę domową" },
-            { english: "do the shopping (v phr)", phonetic: "/du: ðə 'ʃɒpɪŋ/", polish: "robić zakupy" },
-            { english: "do the washing (v phr)", phonetic: "/du: ðə 'wɒʃɪŋ/", polish: "robić pranie" },
-            { english: "do well (v phr)", phonetic: "/du: wel/", polish: "dobrze sobie radzić" },
-            { english: "academic (adj)", phonetic: "/ˌækəˈdemɪk/", polish: "naukowy, akademicki" },
-            { english: "ages (n pl)", phonetic: "/eɪdʒz/", polish: "od wieków" },
-            { english: "already (adv)", phonetic: "/ɔ:lˈredi/", polish: "już" },
-            { english: "anyone", phonetic: "/ˈeniwʌn/", polish: "ktokolwiek" },
-            { english: "anyway (adv)", phonetic: "/ˈeniweɪ/", polish: "w każdym razie" },
-            { english: "arrange (v)", phonetic: "/əˈreɪndʒ/", polish: "umawiać się" },
-            { english: "avoid (v)", phonetic: "/əˈvɔɪd/", polish: "unikać" },
-            { english: "brave (adj)", phonetic: "/breɪv/", polish: "dzielny, odważny" },
-            { english: "break (n)", phonetic: "/breɪk/", polish: "przerwa" },
-            { english: "by the way (prep phr)", phonetic: "/baɪ ðə weɪ/", polish: "przy okazji" },
-            { english: "can't stand (v phr)", phonetic: "/kɑ:nt stænd/", polish: "nie znosić" },
-            { english: "choice (n)", phonetic: "/tʃɔɪs/", polish: "wybór" },
-            { english: "come up (v phr)", phonetic: "/kʌm ʌp/", polish: "pojawiać się" },
-            { english: "complain (v)", phonetic: "/kəmˈpleɪn/", polish: "skarżyć się" },
-            { english: "don't mind (v phr)", phonetic: "/dəʊnt maɪnd/", polish: "nie mieć nic przeciwko" },
-            { english: "duration (n)", phonetic: "/djʊˈreɪʃn/", polish: "czas trwania" },
-            { english: "encourage (v)", phonetic: "/ɪnˈkʌrɪdʒ/", polish: "zachęcać" },
-            { english: "even (adv)", phonetic: "/ˈi:vn/", polish: "nawet" },
-            { english: "expect (v)", phonetic: "/ɪkˈspekt/", polish: "oczekiwać" },
-            { english: "experience (n)", phonetic: "/ɪkˈspɪəriəns/", polish: "doświadczenie" },
-            { english: "find out about (v phr)", phonetic: "/faɪnd aʊt/", polish: "dowiedzieć się" },
-            { english: "hand in (v phr)", phonetic: "/hænd ɪn/", polish: "oddawać" },
-            { english: "helpline (n)", phonetic: "/ˈhelplaɪn/", polish: "infolinia" },
-            { english: "improve (v)", phonetic: "/ɪmˈpru:v/", polish: "poprawiać" },
-            { english: "instead (adv)", phonetic: "/ɪnˈsted/", polish: "zamiast" },
-            { english: "just (adv)", phonetic: "/dʒʌst/", polish: "właśnie" },
-            { english: "look forward to (v phr)", phonetic: "/lʊk ˈfɔ:wəd tu:/", polish: "z niecierpliwością oczekiwać" },
-            { english: "manage (v)", phonetic: "/ˈmænɪdʒ/", polish: "udać się, móc, dać radę" },
-            { english: "never (adv)", phonetic: "/ˈnevə/", polish: "nigdy" },
-            { english: "personal details (n phr)", phonetic: "/ˈpɜ:sənl ˈdi:teɪlz/", polish: "dane osobowe" },
-            { english: "practical (adj)", phonetic: "/ˈpræktɪkl/", polish: "praktyczny" },
-            { english: "realise (v)", phonetic: "/ˈri:əlaɪz/", polish: "uświadomić sobie" },
-            { english: "relatively (adv)", phonetic: "/ˈrelətɪvli/", polish: "stosunkowo" },
-            { english: "research (n)", phonetic: "/rɪˈsɜ:tʃ/", polish: "badanie" },
-            { english: "result (n)", phonetic: "/rɪˈzʌlt/", polish: "wynik" },
-            { english: "risk (n)", phonetic: "/rɪsk/", polish: "ryzyko" },
-            { english: "since (adv)", phonetic: "/sɪns/", polish: "odkąd" },
-            { english: "take your mind off (v phr)", phonetic: "/teɪk jɔ: maɪnd ɒf/", polish: "oderwać uwagę od" },
-            { english: "theoretical (adj)", phonetic: "/ˌθɪəˈretɪkl/", polish: "teoretyczny" },
-            { english: "topic (n)", phonetic: "/ˈtɒpɪk/", polish: "temat" },
-            { english: "unit (n)", phonetic: "/ˈju:nɪt/", polish: "jednostka" },
-            { english: "unspecified (adj)", phonetic: "/ˌʌnˈspesɪfaɪd/", polish: "nieokreślony" },
-            { english: "valid (adj)", phonetic: "/ˈvælɪd/", polish: "ważny, obowiązujący" },
-            { english: "wallet (n)", phonetic: "/ˈwɒlɪt/", polish: "portfel" },
-            { english: "conjunction", phonetic: "", polish: "spójnik" },
-            { english: "determiner", phonetic: "", polish: "określnik" },
-            { english: "a, an, the, that itp.", phonetic: "", polish: "n.p." },
-            { english: "preposition", phonetic: "", polish: "przyimek" },
-            { english: "pronoun", phonetic: "", polish: "zaimek" },
-            { english: "verb", phonetic: "", polish: "czasownik" }
+            { polish: "zadanie domowe", english: "assignment (n)" },
+            { polish: "oszukiwać", english: "cheat (v)" },
+            { polish: "bieżąca ocena", english: "continuous assessment" },
+            { polish: "kurs, zajęcia", english: "course (n)" },
+            { polish: "praca kursowa", english: "coursework (n)" },
+            { polish: "stopień naukowy", english: "degree (n)" },
+            { polish: "nie zdać, oblać", english: "fail (v)" },
+            { polish: "ocena", english: "grade (n)" },
+            { polish: "ukończyć studia", english: "graduate (v)" },
+            { polish: "wykład", english: "lecture (n)" },
+            { polish: "ocena", english: "mark (n)" },
+            { polish: "magister", english: "master's (n)" },
+            { polish: "notatki", english: "notes (pl)" },
+            { polish: "zdać", english: "pass (v)" },
+            { polish: "uczeń", english: "pupil (n)" },
+            { polish: "semestr", english: "term (n)" },
+            { polish: "test", english: "test (n)" },
+            { polish: "nauczyciel, adiunkt", english: "tutor (n)" },
+            { polish: "ćwiczenia, seminarium", english: "tutorial (n)" },
+            { polish: "student na studiach licencjackich", english: "undergraduate (n)" },
+            { polish: "usamodzielnić się", english: "become independent" },
+            { polish: "zajęcia pozaprogramowe", english: "extracurricular activities (n phr)" },
+            { polish: "akademik", english: "hall of residence (n)" },
+            { polish: "zawrzeć nowe przyjaźnie", english: "make new friends" },
+            { polish: "udogodnienia dla studentów", english: "student facilities" },
+            { polish: "kredyt studencki", english: "student loan (n phr)" },
+            { polish: "studiować za granicą", english: "study abroad (v phr)" },
+            { polish: "pomagać", english: "assist (v)" },
+            { polish: "przełamywać bariery", english: "break down barriers" },
+            { polish: "projekt społeczny", english: "community project (n)" },
+            { polish: "niepełnosprawny", english: "disabled (adj)" },
+            { polish: "pokrzywdzony przez los", english: "disadvantaged (adj)" },
+            { polish: "mentor, opiekun", english: "donor (n)" },
+            { polish: "organizacja non-profit", english: "non-profit organisation" },
+            { polish: "zachowywać", english: "preserve (v)" },
+            { polish: "uchodźca", english: "refugee (n)" },
+            { polish: "schronisko", english: "shelter (n)" },
+            { polish: "upośledzony społecznie", english: "underprivileged (adj)" },
+            { polish: "podjąć się dobrowolnie", english: "volunteer (v)" },
+            { polish: "wolontariat", english: "voluntary work (n)" },
+            { polish: "robić ciasto", english: "make a cake (v phr)" },
+            { polish: "podjąć decyzję", english: "make a decision" },
+            { polish: "hałasować", english: "make a noise (v phr)" },
+            { polish: "zawierać przyjaźnie", english: "make friends (v phr)" },
+            { polish: "robić obiad", english: "make the dinner (v phr)" },
+            { polish: "robić kurs", english: "do a course (v phr)" },
+            { polish: "robić zadanie domowe", english: "do an assignment" },
+            { polish: "zdać egzamin", english: "do an exam (v phr)" },
+            { polish: "wykonywać obowiązki domowe", english: "do chores (v phr)" },
+            { polish: "robić pracę domową", english: "do homework (v phr)" },
+            { polish: "robić zakupy", english: "do the shopping (v phr)" },
+            { polish: "robić pranie", english: "do the washing (v phr)" },
+            { polish: "dobrze sobie radzić", english: "do well (v phr)" },
+            { polish: "naukowy, akademicki", english: "academic (adj)" },
+            { polish: "od wieków", english: "ages (n pl)" },
+            { polish: "już", english: "already (adv)" },
+            { polish: "ktokolwiek", english: "anyone" },
+            { polish: "w każdym razie", english: "anyway (adv)" },
+            { polish: "umawiać się", english: "arrange (v)" },
+            { polish: "unikać", english: "avoid (v)" },
+            { polish: "dzielny, odważny", english: "brave (adj)" },
+            { polish: "przerwa", english: "break (n)" },
+            { polish: "przy okazji", english: "by the way (prep phr)" },
+            { polish: "nie znosić", english: "can't stand (v phr)" },
+            { polish: "wybór", english: "choice (n)" },
+            { polish: "pojawiać się", english: "come up (v phr)" },
+            { polish: "skarżyć się", english: "complain (v)" },
+            { polish: "nie mieć nic przeciwko", english: "don't mind (v phr)" },
+            { polish: "czas trwania", english: "duration (n)" },
+            { polish: "zachęcać", english: "encourage (v)" },
+            { polish: "nawet", english: "even (adv)" },
+            { polish: "oczekiwać", english: "expect (v)" },
+            { polish: "doświadczenie", english: "experience (n)" },
+            { polish: "dowiedzieć się", english: "find out about (v phr)" },
+            { polish: "oddawać", english: "hand in (v phr)" },
+            { polish: "infolinia", english: "helpline (n)" },
+            { polish: "poprawiać", english: "improve (v)" },
+            { polish: "zamiast", english: "instead (adv)" },
+            { polish: "właśnie", english: "just (adv)" },
+            { polish: "z niecierpliwością oczekiwać", english: "look forward to (v phr)" },
+            { polish: "udać się, móc, dać radę", english: "manage (v)" },
+            { polish: "nigdy", english: "never (adv)" },
+            { polish: "dane osobowe", english: "personal details (n phr)" },
+            { polish: "praktyczny", english: "practical (adj)" },
+            { polish: "uświadomić sobie", english: "realise (v)" },
+            { polish: "stosunkowo", english: "relatively (adv)" },
+            { polish: "badanie", english: "research (n)" },
+            { polish: "wynik", english: "result (n)" },
+            { polish: "ryzyko", english: "risk (n)" },
+            { polish: "odkąd", english: "since (adv)" },
+            { polish: "oderwać uwagę od", english: "take your mind off (v phr)" },
+            { polish: "teoretyczny", english: "theoretical (adj)" },
+            { polish: "temat", english: "topic (n)" },
+            { polish: "jednostka", english: "unit (n)" },
+            { polish: "nieokreślony", english: "unspecified (adj)" },
+            { polish: "ważny, obowiązujący", english: "valid (adj)" },
+            { polish: "portfel", english: "wallet (n)" },
+            { polish: "spójnik", english: "conjunction" },
+            { polish: "określnik", english: "determiner" },
+            { polish: "n.p.", english: "a, an, the, that itp." },
+            { polish: "przyimek", english: "preposition" },
+            { polish: "zaimek", english: "pronoun" },
+            { polish: "czasownik", english: "verb" }
         ];
 
         let currentIndex = 0;
@@ -186,8 +208,8 @@
             const front = document.querySelector('.front');
             const back = document.querySelector('.back');
             const card = flashcards[currentIndex];
-            front.textContent = card.english;
-            back.textContent = `${card.phonetic}\n${card.polish}`;
+            front.textContent = card.polish;
+            back.textContent = card.english;
         }
 
         function flipCard() {
