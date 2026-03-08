@@ -1,243 +1,705 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fiszki: Polski na Angielski</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-            color: #333;
-        }
-        .card {
-            position: relative;
-            width: 450px;
-            height: 280px;
-            perspective: 1200px;
-            margin-bottom: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-        }
-        .inner {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            transform-style: preserve-3d;
-        }
-        .front, .back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            padding: 25px;
-            box-sizing: border-box;
-            text-align: center;
-            border-radius: 15px;
-        }
-        .front {
-            background: linear-gradient(135deg, #ffffff, #f0f0f0);
-            color: #2c3e50;
-        }
-        .back {
-            background: linear-gradient(135deg, #a8e063, #56ab2f);
-            color: #ffffff;
-            transform: rotateY(180deg);
-        }
-        .flipped .inner {
-            transform: rotateY(180deg);
-        }
-        button {
-            margin: 0 10px;
-            padding: 12px 25px;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        button:active {
-            transform: translateY(0);
-        }
-        .controls {
-            display: flex;
-            justify-content: center;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiszki – Słownictwo</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0f;
+    --card-bg: #18181b;
+    --gold: #f5c842;
+    --gold-dim: #c9a12a;
+    --text: #f0ede6;
+    --muted: #7a7870;
+    --green: #4ade80;
+    --red: #f87171;
+    --border: #2a2a2e;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(245,200,66,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    z-index: 1;
+    position: relative;
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #000;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    z-index: 1;
+    position: relative;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+
+  .stats span b { color: var(--text); font-weight: 500; }
+  .stats .learned b { color: var(--green); }
+  .stats .skipped b { color: var(--red); }
+
+  /* CARD SCENE */
+  .scene {
+    width: min(420px, 92vw);
+    height: 260px;
+    perspective: 1200px;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 1.5rem;
+  }
+
+  .card {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4,0,0.2,1);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .card.flipped { transform: rotateY(180deg); }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: 0.5rem;
+    background: var(--card-bg);
+    overflow: hidden;
+  }
+
+  .card-face::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(245,200,66,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .card-front .hint {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .card-front .category-badge {
+    position: absolute;
+    top: 1rem; left: 1rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(245,200,66,0.12);
+    color: var(--gold-dim);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  .card-front .pos-badge {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(255,255,255,0.05);
+    color: var(--muted);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+  }
+
+  .card-front .word {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 700;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.1;
+  }
+
+  .card-front .phonetic {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .card-back {
+    transform: rotateY(180deg);
+  }
+
+  .card-back .translation {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .card-back .original {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  .card-back .flip-back-hint {
+    position: absolute;
+    bottom: 1rem;
+    font-size: 0.6rem;
+    color: var(--border);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Counter */
+  .counter {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 1.5rem;
+    z-index: 1;
+    position: relative;
+  }
+
+  /* Action buttons */
+  .actions {
+    display: flex;
+    gap: 1rem;
+    z-index: 1;
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.75rem 1.6rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-skip {
+    background: rgba(248,113,113,0.1);
+    color: var(--red);
+    border: 1px solid rgba(248,113,113,0.25);
+  }
+  .btn-skip:hover { background: rgba(248,113,113,0.2); transform: translateY(-1px); }
+
+  .btn-next {
+    background: var(--gold);
+    color: #000;
+    font-weight: 500;
+  }
+  .btn-next:hover { background: #f7d45a; transform: translateY(-1px); }
+
+  .btn-know {
+    background: rgba(74,222,128,0.1);
+    color: var(--green);
+    border: 1px solid rgba(74,222,128,0.25);
+  }
+  .btn-know:hover { background: rgba(74,222,128,0.2); transform: translateY(-1px); }
+
+  /* Progress bar */
+  .progress-wrap {
+    width: min(420px, 92vw);
+    height: 3px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    z-index: 1;
+    position: relative;
+    margin-bottom: 2.5rem;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+
+  /* Mode toggle */
+  .mode-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    z-index: 1;
+    position: relative;
+  }
+
+  .mode-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 0.35rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .mode-btn.active { background: var(--border); color: var(--text); }
+
+  /* Done screen */
+  .done-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    z-index: 1;
+    position: relative;
+    text-align: center;
+  }
+
+  .done-screen.visible { display: flex; }
+
+  .done-screen h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gold);
+  }
+
+  .done-screen p { color: var(--muted); font-size: 0.8rem; line-height: 1.6; }
+
+  .btn-restart {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.8rem 2rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background 0.15s;
+  }
+  .btn-restart:hover { background: #f7d45a; }
+
+  .main-area { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+  /* Shuffle animation */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(18px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .scene { animation: slideIn 0.35s ease; }
+</style>
 </head>
 <body>
-    <div id="card" class="card">
-        <div class="inner">
-            <div class="front"></div>
-            <div class="back"></div>
-        </div>
+
+<header>
+  <h1>Fiszki</h1>
+  <p>Naciśnij kartę, żeby zobaczyć tłumaczenie</p>
+</header>
+
+<div class="filters" id="filters"></div>
+
+<div class="stats">
+  <span class="learned">✓ <b id="learnedCount">0</b> znam</span>
+  <span><b id="remainCount">0</b> pozostało</span>
+  <span class="skipped">✗ <b id="skipCount">0</b> powtórz</span>
+</div>
+
+<div class="mode-row">
+  <button class="mode-btn active" onclick="setMode('pl')">PL → EN</button>
+  <button class="mode-btn" onclick="setMode('en')">EN → PL</button>
+  <button class="mode-btn" onclick="shuffle()">🔀 Tasuj</button>
+</div>
+
+<div class="main-area" id="mainArea">
+  <div class="scene" id="scene" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="card-face card-front">
+        <span class="category-badge" id="catBadge"></span>
+        <span class="pos-badge" id="posBadge"></span>
+        <div class="hint" id="frontHint">słówko</div>
+        <div class="word" id="frontWord"></div>
+        <div class="phonetic" id="frontPhonetic"></div>
+      </div>
+      <div class="card-face card-back">
+        <div class="translation" id="backTranslation"></div>
+        <div class="original" id="backOriginal"></div>
+        <div class="flip-back-hint">kliknij, żeby wrócić</div>
+      </div>
     </div>
-    <div class="controls">
-        <button onclick="flipCard()">Odwróć</button>
-        <button onclick="nextCard()">Następna</button>
-    </div>
+  </div>
 
-    <script>
-        let flashcards = [
-            { polish: "zadanie domowe", english: "assignment (n)" },
-            { polish: "oszukiwać", english: "cheat (v)" },
-            { polish: "bieżąca ocena", english: "continuous assessment" },
-            { polish: "kurs, zajęcia", english: "course (n)" },
-            { polish: "praca kursowa", english: "coursework (n)" },
-            { polish: "stopień naukowy", english: "degree (n)" },
-            { polish: "nie zdać, oblać", english: "fail (v)" },
-            { polish: "ocena", english: "grade (n)" },
-            { polish: "ukończyć studia", english: "graduate (v)" },
-            { polish: "wykład", english: "lecture (n)" },
-            { polish: "ocena", english: "mark (n)" },
-            { polish: "magister", english: "master's (n)" },
-            { polish: "notatki", english: "notes (pl)" },
-            { polish: "zdać", english: "pass (v)" },
-            { polish: "uczeń", english: "pupil (n)" },
-            { polish: "semestr", english: "term (n)" },
-            { polish: "test", english: "test (n)" },
-            { polish: "nauczyciel, adiunkt", english: "tutor (n)" },
-            { polish: "ćwiczenia, seminarium", english: "tutorial (n)" },
-            { polish: "student na studiach licencjackich", english: "undergraduate (n)" },
-            { polish: "usamodzielnić się", english: "become independent" },
-            { polish: "zajęcia pozaprogramowe", english: "extracurricular activities (n phr)" },
-            { polish: "akademik", english: "hall of residence (n)" },
-            { polish: "zawrzeć nowe przyjaźnie", english: "make new friends" },
-            { polish: "udogodnienia dla studentów", english: "student facilities" },
-            { polish: "kredyt studencki", english: "student loan (n phr)" },
-            { polish: "studiować za granicą", english: "study abroad (v phr)" },
-            { polish: "pomagać", english: "assist (v)" },
-            { polish: "przełamywać bariery", english: "break down barriers" },
-            { polish: "projekt społeczny", english: "community project (n)" },
-            { polish: "niepełnosprawny", english: "disabled (adj)" },
-            { polish: "pokrzywdzony przez los", english: "disadvantaged (adj)" },
-            { polish: "mentor, opiekun", english: "donor (n)" },
-            { polish: "organizacja non-profit", english: "non-profit organisation" },
-            { polish: "zachowywać", english: "preserve (v)" },
-            { polish: "uchodźca", english: "refugee (n)" },
-            { polish: "schronisko", english: "shelter (n)" },
-            { polish: "upośledzony społecznie", english: "underprivileged (adj)" },
-            { polish: "podjąć się dobrowolnie", english: "volunteer (v)" },
-            { polish: "wolontariat", english: "voluntary work (n)" },
-            { polish: "robić ciasto", english: "make a cake (v phr)" },
-            { polish: "podjąć decyzję", english: "make a decision" },
-            { polish: "hałasować", english: "make a noise (v phr)" },
-            { polish: "zawierać przyjaźnie", english: "make friends (v phr)" },
-            { polish: "robić obiad", english: "make the dinner (v phr)" },
-            { polish: "robić kurs", english: "do a course (v phr)" },
-            { polish: "robić zadanie domowe", english: "do an assignment" },
-            { polish: "zdać egzamin", english: "do an exam (v phr)" },
-            { polish: "wykonywać obowiązki domowe", english: "do chores (v phr)" },
-            { polish: "robić pracę domową", english: "do homework (v phr)" },
-            { polish: "robić zakupy", english: "do the shopping (v phr)" },
-            { polish: "robić pranie", english: "do the washing (v phr)" },
-            { polish: "dobrze sobie radzić", english: "do well (v phr)" },
-            { polish: "naukowy, akademicki", english: "academic (adj)" },
-            { polish: "od wieków", english: "ages (n pl)" },
-            { polish: "już", english: "already (adv)" },
-            { polish: "ktokolwiek", english: "anyone" },
-            { polish: "w każdym razie", english: "anyway (adv)" },
-            { polish: "umawiać się", english: "arrange (v)" },
-            { polish: "unikać", english: "avoid (v)" },
-            { polish: "dzielny, odważny", english: "brave (adj)" },
-            { polish: "przerwa", english: "break (n)" },
-            { polish: "przy okazji", english: "by the way (prep phr)" },
-            { polish: "nie znosić", english: "can't stand (v phr)" },
-            { polish: "wybór", english: "choice (n)" },
-            { polish: "pojawiać się", english: "come up (v phr)" },
-            { polish: "skarżyć się", english: "complain (v)" },
-            { polish: "nie mieć nic przeciwko", english: "don't mind (v phr)" },
-            { polish: "czas trwania", english: "duration (n)" },
-            { polish: "zachęcać", english: "encourage (v)" },
-            { polish: "nawet", english: "even (adv)" },
-            { polish: "oczekiwać", english: "expect (v)" },
-            { polish: "doświadczenie", english: "experience (n)" },
-            { polish: "dowiedzieć się", english: "find out about (v phr)" },
-            { polish: "oddawać", english: "hand in (v phr)" },
-            { polish: "infolinia", english: "helpline (n)" },
-            { polish: "poprawiać", english: "improve (v)" },
-            { polish: "zamiast", english: "instead (adv)" },
-            { polish: "właśnie", english: "just (adv)" },
-            { polish: "z niecierpliwością oczekiwać", english: "look forward to (v phr)" },
-            { polish: "udać się, móc, dać radę", english: "manage (v)" },
-            { polish: "nigdy", english: "never (adv)" },
-            { polish: "dane osobowe", english: "personal details (n phr)" },
-            { polish: "praktyczny", english: "practical (adj)" },
-            { polish: "uświadomić sobie", english: "realise (v)" },
-            { polish: "stosunkowo", english: "relatively (adv)" },
-            { polish: "badanie", english: "research (n)" },
-            { polish: "wynik", english: "result (n)" },
-            { polish: "ryzyko", english: "risk (n)" },
-            { polish: "odkąd", english: "since (adv)" },
-            { polish: "oderwać uwagę od", english: "take your mind off (v phr)" },
-            { polish: "teoretyczny", english: "theoretical (adj)" },
-            { polish: "temat", english: "topic (n)" },
-            { polish: "jednostka", english: "unit (n)" },
-            { polish: "nieokreślony", english: "unspecified (adj)" },
-            { polish: "ważny, obowiązujący", english: "valid (adj)" },
-            { polish: "portfel", english: "wallet (n)" },
-            { polish: "spójnik", english: "conjunction" },
-            { polish: "określnik", english: "determiner" },
-            { polish: "przyimek", english: "preposition" },
-            { polish: "zaimek", english: "pronoun" },
-            { polish: "czasownik", english: "verb" }
-        ];
+  <div class="counter" id="counter"></div>
 
-        // Funkcja do tasowania tablicy (Fisher-Yates shuffle)
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
 
-        // Przetasuj fiszki na starcie
-        shuffle(flashcards);
+  <div class="actions" id="actions">
+    <button class="btn btn-skip" onclick="markSkip()">✗ Nie znam</button>
+    <button class="btn btn-next" onclick="nextCard()">→ Następna</button>
+    <button class="btn btn-know" onclick="markKnow()">✓ Znam</button>
+  </div>
 
-        let currentIndex = 0;
+  <div class="done-screen" id="doneScreen">
+    <h2>Koniec rundy! 🎉</h2>
+    <p id="doneText"></p>
+    <button class="btn-restart" onclick="restart()">Zacznij od nowa</button>
+    <button class="btn-restart" style="background:#2a2a2e;color:var(--text);margin-top:0" onclick="restartSkipped()">Powtórz nieznane</button>
+  </div>
+</div>
 
-        function showCard() {
-            const front = document.querySelector('.front');
-            const back = document.querySelector('.back');
-            const card = flashcards[currentIndex];
-            front.textContent = card.polish;
-            back.textContent = card.english;
-        }
+<script>
+const ALL_WORDS = [
+  // CECHY CHARAKTERU
+  {en:"ambitious",pl:"ambitny",pos:"adj",cat:"Charakter",ph:"/æmˈbɪʃəs/"},
+  {en:"arrogant",pl:"arogancki",pos:"adj",cat:"Charakter",ph:"/ˈærəɡənt/"},
+  {en:"assertive",pl:"asertywny",pos:"adj",cat:"Charakter",ph:"/əˈsɜːtɪv/"},
+  {en:"bad-tempered",pl:"wybuchowy",pos:"adj",cat:"Charakter",ph:"/ˌbæd ˈtempəd/"},
+  {en:"big-headed",pl:"zarozumiały",pos:"adj",cat:"Charakter",ph:"/ˌbɪɡˈhedɪd/"},
+  {en:"bossy",pl:"apodyktyczny",pos:"adj",cat:"Charakter",ph:"/ˈbɒsi/"},
+  {en:"broad-minded",pl:"tolerancyjny",pos:"adj",cat:"Charakter",ph:"/ˌbrɔːdˈmaɪndɪd/"},
+  {en:"brusque",pl:"szorstki, opryskliwy",pos:"adj",cat:"Charakter",ph:"/bruːsk/"},
+  {en:"determined",pl:"zdeterminowany",pos:"adj",cat:"Charakter",ph:"/dɪˈtɜːmɪnd/"},
+  {en:"down-to-earth",pl:"praktyczny",pos:"adj",cat:"Charakter",ph:"/ˌdaʊntəˈɜːθ/"},
+  {en:"easygoing",pl:"wyrozumiały, spokojny",pos:"adj",cat:"Charakter",ph:"/ˌiːziˈɡəʊɪŋ/"},
+  {en:"frank",pl:"szczery",pos:"adj",cat:"Charakter",ph:"/fræŋk/"},
+  {en:"gifted",pl:"utalentowany",pos:"adj",cat:"Charakter",ph:"/ˈɡɪftɪd/"},
+  {en:"good-natured",pl:"dobroduszny",pos:"adj",cat:"Charakter",ph:"/ˌɡʊdˈneɪtʃəd/"},
+  {en:"immature",pl:"niedojrzały",pos:"adj",cat:"Charakter",ph:"/ˌɪməˈtjʊər/"},
+  {en:"insecure",pl:"niepewny",pos:"adj",cat:"Charakter",ph:"/ˌɪnsɪˈkjʊər/"},
+  {en:"mature",pl:"dojrzały",pos:"adj",cat:"Charakter",ph:"/məˈtjʊər/"},
+  {en:"modest",pl:"skromny",pos:"adj",cat:"Charakter",ph:"/ˈmɒdɪst/"},
+  {en:"narrow-minded",pl:"ograniczony",pos:"adj",cat:"Charakter",ph:"/ˌnærəʊˈmaɪndɪd/"},
+  {en:"outgoing",pl:"otwarty, towarzyski",pos:"adj",cat:"Charakter",ph:"/ˈaʊtɡəʊɪŋ/"},
+  {en:"pushy",pl:"nachalny, natretny",pos:"adj",cat:"Charakter",ph:"/ˈpʊʃi/"},
+  {en:"reserved",pl:"powściągliwy",pos:"adj",cat:"Charakter",ph:"/rɪˈzɜːvd/"},
+  {en:"self-confident",pl:"pewny siebie",pos:"adj",cat:"Charakter",ph:"/ˌselfˈkɒnfɪdənt/"},
+  {en:"sensitive",pl:"wrażliwy",pos:"adj",cat:"Charakter",ph:"/ˈsensɪtɪv/"},
+  {en:"shy",pl:"nieśmiały",pos:"adj",cat:"Charakter",ph:"/ʃaɪ/"},
+  {en:"slow",pl:"mało pojętny",pos:"adj",cat:"Charakter",ph:"/sləʊ/"},
+  {en:"stubborn",pl:"uparty",pos:"adj",cat:"Charakter",ph:"/ˈstʌbən/"},
+  {en:"tactful",pl:"taktowny",pos:"adj",cat:"Charakter",ph:"/ˈtæktf(ə)l/"},
+  {en:"tactless",pl:"nietaktowny",pos:"adj",cat:"Charakter",ph:"/ˈtækt(l)əs/"},
+  {en:"talented",pl:"utalentowany",pos:"adj",cat:"Charakter",ph:"/ˈtæləntɪd/"},
+  // SPORT
+  {en:"ban",pl:"zakaz, zakazywać",pos:"n, v",cat:"Sport",ph:"/bæn/"},
+  {en:"bribe",pl:"łapówka",pos:"n",cat:"Sport",ph:"/braɪb/"},
+  {en:"betting",pl:"zakłady",pos:"n",cat:"Sport",ph:"/ˈbetɪŋ/"},
+  {en:"cheat",pl:"oszukiwać",pos:"v",cat:"Sport",ph:"/tʃiːt/"},
+  {en:"doping",pl:"doping",pos:"n",cat:"Sport",ph:"/ˈdəʊpɪŋ/"},
+  {en:"fair play",pl:"czysta gra",pos:"n",cat:"Sport",ph:"/ˌfeə ˈpleɪ/"},
+  {en:"foul play",pl:"nieczysta gra",pos:"n",cat:"Sport",ph:"/ˌfaʊl ˈpleɪ/"},
+  {en:"penalise",pl:"karać",pos:"v",cat:"Sport",ph:"/ˈpiːnəlaɪz/"},
+  {en:"performance-enhancing drugs",pl:"środki dopingujące",pos:"n phr",cat:"Sport",ph:"/pəˌfɔːməns ɪnˌhɑːnsɪŋ ˈdrʌɡz/"},
+  // RZECZOWNIKI
+  {en:"electricity",pl:"elektryczność",pos:"n",cat:"Rzeczowniki",ph:"/ɪˌlekˈtrɪsɪti/"},
+  {en:"employer",pl:"pracodawca",pos:"n",cat:"Rzeczowniki",ph:"/ɪmˈplɔːər/"},
+  {en:"employment",pl:"zatrudnienie",pos:"n",cat:"Rzeczowniki",ph:"/ɪmˈplɔɪmənt/"},
+  {en:"enjoyment",pl:"przyjemność",pos:"n",cat:"Rzeczowniki",ph:"/ɪnˈdʒɔɪmənt/"},
+  {en:"happiness",pl:"szczęście",pos:"n",cat:"Rzeczowniki",ph:"/ˈhæpɪnəs/"},
+  {en:"illness",pl:"choroba",pos:"n",cat:"Rzeczowniki",ph:"/ˈɪlnəs/"},
+  {en:"importance",pl:"znaczenie",pos:"n",cat:"Rzeczowniki",ph:"/ɪmˈpɔːt(ə)ns/"},
+  {en:"improvement",pl:"poprawa",pos:"n",cat:"Rzeczowniki",ph:"/ɪmˈpruːvmənt/"},
+  {en:"invention",pl:"wynalazek",pos:"n",cat:"Rzeczowniki",ph:"/ɪnˈvenʃ(ə)n/"},
+  {en:"inventor",pl:"wynalazca",pos:"n",cat:"Rzeczowniki",ph:"/ɪnˈventər/"},
+  {en:"investigation",pl:"badanie, dochodzenie",pos:"n",cat:"Rzeczowniki",ph:"/ɪnˌvestɪˈɡeɪʃ(ə)n/"},
+  {en:"investigator",pl:"badacz, oficer śledczy",pos:"n",cat:"Rzeczowniki",ph:"/ɪnˈvestɪɡeɪtər/"},
+  {en:"madness",pl:"szaleństwo",pos:"n",cat:"Rzeczowniki",ph:"/ˈmædnəs/"},
+  {en:"musician",pl:"muzyk",pos:"n",cat:"Rzeczowniki",ph:"/mjuːˈzɪʃ(ə)n/"},
+  {en:"performance",pl:"przedstawienie, występ",pos:"n",cat:"Rzeczowniki",ph:"/pəˈfɔːməns/"},
+  {en:"politician",pl:"polityk",pos:"n",cat:"Rzeczowniki",ph:"/ˌpɒlɪˈtɪʃ(ə)n/"},
+  {en:"relevance",pl:"znaczenie, związek",pos:"n",cat:"Rzeczowniki",ph:"/ˈreləv(ə)ns/"},
+  {en:"scientist",pl:"naukowiec",pos:"n",cat:"Rzeczowniki",ph:"/ˈsaɪəntɪst/"},
+  {en:"writer",pl:"pisarz",pos:"n",cat:"Rzeczowniki",ph:"/ˈraɪtər/"},
+  // INNE
+  {en:"bottom",pl:"ostatnie miejsce",pos:"adj",cat:"Inne",ph:"/ˈbɒtəm/"},
+  {en:"bully",pl:"znęcający się nad słabszymi, zastraszać",pos:"n, v",cat:"Inne",ph:"/ˈbʊli/"},
+  {en:"calm",pl:"spokojny, opanowany",pos:"adj",cat:"Inne",ph:"/kɑːm/"},
+  {en:"character traits",pl:"cechy charakteru",pos:"n",cat:"Inne",ph:"/ˈkærəktə treɪts/"},
+  {en:"demonstrate",pl:"zaprezentować",pos:"v",cat:"Inne",ph:"/ˈdemənstreɪt/"},
+  {en:"display",pl:"przejawiać",pos:"v",cat:"Inne",ph:"/dɪˈspleɪ/"},
+  {en:"equal",pl:"równy",pos:"adj",cat:"Inne",ph:"/ˈiːkwəl/"},
+  {en:"faultless behaviour",pl:"nienaganene zachowanie",pos:"n",cat:"Inne",ph:"/ˈfɔːltləs bɪˈheɪvjər/"},
+  {en:"get on somebody's nerves",pl:"działać komuś na nerwy",pos:"v phr",cat:"Inne",ph:"/ɡet ɒn ˌsʌmbədiz ˈnɜːvz/"},
+  {en:"humility",pl:"pokora",pos:"n",cat:"Inne",ph:"/hjuːˈmɪlɪti/"},
+  {en:"make a point",pl:"udowadniać coś",pos:"v phr",cat:"Inne",ph:"/meɪk ə ˈpɔɪnt/"},
+  {en:"mission",pl:"misja, zadanie",pos:"n",cat:"Inne",ph:"/ˈmɪʃ(ə)n/"},
+  {en:"pack",pl:"talia (kart)",pos:"n",cat:"Inne",ph:"/pæk/"},
+  {en:"painful",pl:"bolesny",pos:"adj",cat:"Inne",ph:"/ˈpeɪnf(ə)l/"},
+  {en:"respect",pl:"szacunek",pos:"n",cat:"Inne",ph:"/rɪˈspekt/"},
+  {en:"role model",pl:"wzór do naśladowania",pos:"n",cat:"Inne",ph:"/ˌrəʊl ˈmɒd(ə)l/"},
+  {en:"shock",pl:"szok, szokować",pos:"n, v",cat:"Inne",ph:"/ʃɒk/"},
+  {en:"surface",pl:"powierzchnia",pos:"n",cat:"Inne",ph:"/ˈsɜːfɪs/"},
+  {en:"true grit",pl:"prawdziwe męstwo",pos:"n",cat:"Inne",ph:"/ˌtruː ˈɡrɪt/"},
+  // PRZYROSTKI
+  {en:"ability",pl:"zdolność, umiejętność",pos:"n",cat:"Przyrostki",ph:"/əˈbɪləti/"},
+  {en:"action",pl:"działanie",pos:"n",cat:"Przyrostki",ph:"/ˈækʃ(ə)n/"},
+  {en:"activity",pl:"aktywność, działalność",pos:"n",cat:"Przyrostki",ph:"/ækˈtɪvəti/"},
+  {en:"actor",pl:"aktor",pos:"n",cat:"Przyrostki",ph:"/ˈæktər/"},
+  {en:"appearance",pl:"wygląd",pos:"n",cat:"Przyrostki",ph:"/əˈpɪərəns/"},
+  {en:"artist",pl:"artysta",pos:"n",cat:"Przyrostki",ph:"/ˈɑːtɪst/"},
+  {en:"confidence",pl:"pewność siebie",pos:"n",cat:"Przyrostki",ph:"/ˈkɒnfɪd(ə)ns/"},
+  {en:"creation",pl:"tworzenie",pos:"n",cat:"Przyrostki",ph:"/kriˈeɪʃ(ə)n/"},
+  {en:"creativity",pl:"kreatywność",pos:"n",cat:"Przyrostki",ph:"/ˌkriːeɪˈtɪvɪti/"},
+  {en:"creator",pl:"twórca",pos:"n",cat:"Przyrostki",ph:"/kriˈeɪtər/"},
+  {en:"darkness",pl:"ciemność",pos:"n",cat:"Przyrostki",ph:"/ˈdɑːknəs/"},
+  {en:"difference",pl:"różnica",pos:"n",cat:"Przyrostki",ph:"/ˈdɪfrəns/"},
+  {en:"direction",pl:"kierunek",pos:"n",cat:"Przyrostki",ph:"/daɪˈrekʃ(ə)n/"},
+  {en:"education",pl:"edukacja",pos:"n",cat:"Przyrostki",ph:"/ˌedjʊˈkeɪʃ(ə)n/"},
+  {en:"educator",pl:"pedagog",pos:"n",cat:"Przyrostki",ph:"/ˈedjʊkeɪtər/"},
+  {en:"electrician",pl:"elektryk",pos:"n",cat:"Przyrostki",ph:"/ɪˌlekˈtrɪʃ(ə)n/"},
+];
 
-        function flipCard() {
-            document.getElementById('card').classList.toggle('flipped');
-        }
+let deck = [];
+let current = 0;
+let mode = 'pl'; // 'pl' = show PL guess EN, 'en' = show EN guess PL
+let learned = new Set();
+let skipped = new Set();
+let activeFilter = 'Wszystkie';
 
-        function nextCard() {
-            const cardElement = document.getElementById('card');
-            cardElement.classList.remove('flipped');
+function getCategories() {
+  const cats = ['Wszystkie', ...new Set(ALL_WORDS.map(w => w.cat))];
+  return cats;
+}
 
-            // Poczekaj na zakończenie animacji odwrócenia zanim zmienisz zawartość
-            setTimeout(() => {
-                currentIndex = (currentIndex + 1) % flashcards.length;
-                showCard();
-            }, 800); // Czas równy transition: 0.8s (800ms)
-        }
+function buildFilters() {
+  const wrap = document.getElementById('filters');
+  wrap.innerHTML = '';
+  getCategories().forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn' + (cat === activeFilter ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => { activeFilter = cat; buildFilters(); initDeck(); };
+    wrap.appendChild(btn);
+  });
+}
 
-        showCard();
-    </script>
+function initDeck() {
+  let base = activeFilter === 'Wszystkie' ? ALL_WORDS : ALL_WORDS.filter(w => w.cat === activeFilter);
+  deck = [...base].sort(() => Math.random() - 0.5);
+  learned = new Set();
+  skipped = new Set();
+  current = 0;
+  document.getElementById('doneScreen').classList.remove('visible');
+  document.getElementById('mainArea').querySelector('.scene').style.display = '';
+  document.getElementById('counter').style.display = '';
+  document.getElementById('actions').style.display = '';
+  document.getElementById('progressBar').parentElement.style.display = '';
+  renderCard();
+  updateStats();
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach((b,i) => b.classList.toggle('active', (i===0 && m==='pl')||(i===1 && m==='en')));
+  renderCard();
+}
+
+function shuffle() {
+  deck = [...deck].sort(() => Math.random() - 0.5);
+  current = 0;
+  renderCard();
+}
+
+function renderCard() {
+  const card = document.getElementById('card');
+  card.classList.remove('flipped');
+
+  const scene = document.getElementById('scene');
+  scene.style.animation = 'none';
+  void scene.offsetWidth;
+  scene.style.animation = '';
+
+  if (current >= deck.length) { showDone(); return; }
+  const w = deck[current];
+
+  document.getElementById('catBadge').textContent = w.cat;
+  document.getElementById('posBadge').textContent = w.pos;
+
+  if (mode === 'en') {
+    document.getElementById('frontHint').textContent = 'angielskie';
+    document.getElementById('frontWord').textContent = w.en;
+    document.getElementById('frontPhonetic').textContent = w.ph;
+    document.getElementById('backTranslation').textContent = w.pl;
+    document.getElementById('backOriginal').textContent = w.en;
+  } else {
+    document.getElementById('frontHint').textContent = 'polskie';
+    document.getElementById('frontWord').textContent = w.pl;
+    document.getElementById('frontPhonetic').textContent = '';
+    document.getElementById('backTranslation').textContent = w.en;
+    document.getElementById('backOriginal').textContent = w.ph;
+  }
+
+  updateCounter();
+  updateStats();
+  updateProgress();
+}
+
+function flipCard() {
+  document.getElementById('card').classList.toggle('flipped');
+}
+
+function nextCard() {
+  current++;
+  renderCard();
+}
+
+function markKnow() {
+  learned.add(deck[current].en);
+  skipped.delete(deck[current].en);
+  current++;
+  renderCard();
+}
+
+function markSkip() {
+  skipped.add(deck[current].en);
+  learned.delete(deck[current].en);
+  current++;
+  renderCard();
+}
+
+function updateCounter() {
+  document.getElementById('counter').textContent = `${current + 1} / ${deck.length}`;
+}
+
+function updateStats() {
+  document.getElementById('learnedCount').textContent = learned.size;
+  document.getElementById('skipCount').textContent = skipped.size;
+  document.getElementById('remainCount').textContent = deck.length - current;
+}
+
+function updateProgress() {
+  const pct = (current / deck.length) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+function showDone() {
+  document.getElementById('doneScreen').classList.add('visible');
+  document.getElementById('scene').style.display = 'none';
+  document.getElementById('counter').style.display = 'none';
+  document.getElementById('actions').style.display = 'none';
+  document.getElementById('progressBar').parentElement.style.display = 'none';
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('doneText').innerHTML =
+    `Poznałeś <b style="color:var(--green)">${learned.size}</b> słówek, <b style="color:var(--red)">${skipped.size}</b> do powtórzenia.`;
+  updateStats();
+}
+
+function restart() {
+  initDeck();
+}
+
+function restartSkipped() {
+  if (skipped.size === 0) { restart(); return; }
+  deck = ALL_WORDS.filter(w => skipped.has(w.en)).sort(() => Math.random() - 0.5);
+  learned = new Set();
+  skipped = new Set();
+  current = 0;
+  document.getElementById('doneScreen').classList.remove('visible');
+  document.getElementById('scene').style.display = '';
+  document.getElementById('counter').style.display = '';
+  document.getElementById('actions').style.display = '';
+  document.getElementById('progressBar').parentElement.style.display = '';
+  renderCard();
+  updateStats();
+}
+
+buildFilters();
+initDeck();
+</script>
 </body>
 </html>
